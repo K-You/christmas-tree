@@ -20,7 +20,7 @@ main {
   color: white;
   position: absolute;
 
-  /* z-index: 99; */
+  z-index: 99;
 
   display: grid;
   grid-template-columns: repeat(12, 1fr);
