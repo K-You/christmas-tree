@@ -1,6 +1,7 @@
 import * as THREE from 'THREE';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import dat from 'dat.gui';
 import './style.css';
 
 // Renderer
@@ -16,19 +17,10 @@ const scene = new THREE.Scene();
 
 // Camera
 const camera = new THREE.PerspectiveCamera(74, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.setZ(30);
+// camera.position.setZ(30);
 camera.position.x = -3;
 
 renderer.render(scene, camera);
-
-// Object
-const geometry = new THREE.TorusGeometry(8,3,16,100);
-const material = new THREE.MeshStandardMaterial({
-  color: 0xFF6347,
-  wireframe: true
-});
-const torus = new THREE.Mesh(geometry, material);
-scene.add(torus);
 
 // Light
 const pointLight = new THREE.PointLight(0xFFFFFF);
@@ -43,81 +35,67 @@ scene.add(pointLight, ambientLight);
 // scene.add(lightHelper, gridHelper);
 
 // Controls
-const controls = new OrbitControls(camera, renderer.domElement);
+// const controls = new OrbitControls(camera, renderer.domElement);
 
 
-// Moon
-const moonTexture = new THREE.TextureLoader().load('assets/moon.jpg');
-const normalTexture = new THREE.TextureLoader().load('assets/normal.jpg');
-const moon = new THREE.Mesh(
-  new THREE.SphereGeometry(3, 32, 32),
-  new THREE.MeshStandardMaterial({
-    map: moonTexture,
-    normalMap: normalTexture
-  })
-)
-scene.add(moon);
-
-moon.position.z = 30;
-moon.position.x = -10;
-
-// Stormtrooper + dat.GUI
+// Tree + dat.GUI
 // const gui = new dat.GUI();
+// gui.add(camera.position, 'x', -50, 50, 1);
+// gui.add(camera.position, 'y', -50, 50, 1);
+// gui.add(camera.position, 'z', -50, 50, 1);
 
 // Array of animations mixers
 const mixers = [];
 
 const gltfLoader = new GLTFLoader();
-let stormtrooper = null;
-gltfLoader.load('assets/dancing_stormtrooper/scene.gltf', (trooper) => {
-  trooper.scene.position.set(7, -1, -9);
+let tree = null;
+gltfLoader.load('assets/low_poly_coniferous_tree/scene.gltf', (gltf) => {
+  gltf.scene.position.set(0, -4, 0);
 
-  // gui.add(trooper.scene.position, 'x', -20, 20, 1);
-  // gui.add(trooper.scene.position, 'y', -20, 20, 1);
-  // gui.add(trooper.scene.position, 'z', -20, 20, 1);
+  // gui.add(gltf.scene.position, 'x', -20, 20, 1);
+  // gui.add(gltf.scene.position, 'y', -20, 20, 1);
+  // gui.add(gltf.scene.position, 'z', -20, 20, 1);
 
-  const mixer = new THREE.AnimationMixer(trooper.scene);
-  mixers.push(mixer);
-  const start = mixer.clipAction(trooper.animations[0]);
-  start.play();
-
-  stormtrooper = trooper.scene;
-  scene.add(trooper.scene);
+  tree = gltf.scene;
+  scene.add(gltf.scene);
 });
 
-
-
-// Scroll animation
-function moveCamera(){
-  let t = document.body.getBoundingClientRect().top;
-  if(t>0){
-    t = -t;
-  }
-  camera.position.z = t * -0.01;
-  camera.position.y = t * -0.0002;
-  camera.position.x = t * -0.0002;
-
-  if(stormtrooper){
-    stormtrooper.position.y = t * -0.02;
-  }
-  
+// Add Snowflakes
+const snowflakes = [];
+function addSnowflakes(snowflakes_count){
+  Array(snowflakes_count).fill().forEach(addSnowflake);
 }
 
-document.body.onscroll = moveCamera;
-moveCamera();
+function addSnowflake() {
+  const geometry = new THREE.SphereGeometry(0.05);
+  const material = new THREE.MeshStandardMaterial({color: 0xffffff});
+  const snowflake = new THREE.Mesh(geometry, material);
+
+  const [x,y,z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(100));
+  
+  snowflake.position.set(x,y,z);
+  snowflakes.push(snowflake);
+  scene.add(snowflake);
+}
+addSnowflakes(700);
 
 //Animation
 let previousRAF = null;
 function animate(t){
   requestAnimationFrame(animate);
 
-  torus.rotation.x += 0.01;
-  torus.rotation.y += 0.005;
-  torus.rotation.x += 0.01;
+  camera.position.x = 10*Math.cos(0.0005*t);
+  camera.position.z = 10*Math.sin(0.0005*t);
 
-  moon.rotation.y += 0.005;
+  camera.lookAt(0,0,0);
 
-  controls.update();
+  snowflakes.forEach(flake => {
+    if (flake.position.y > -50) {
+      flake.position.y -= 0.25;
+    } else {
+      flake.position.y = 50;
+    }
+  })
 
   renderer.render(scene, camera);
   if(previousRAF === null){
@@ -130,23 +108,6 @@ function animate(t){
   }
   previousRAF = t;
 }
-
-// Add Stars
-function addStars(stars_count){
-  Array(stars_count).fill().forEach(addStar);
-}
-
-function addStar() {
-  const geometry = new THREE.SphereGeometry(0.25);
-  const material = new THREE.MeshStandardMaterial({color: 0xffffff});
-  const star = new THREE.Mesh(geometry, material);
-
-  const [x,y,z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(100));
-  
-  star.position.set(x,y,z);
-  scene.add(star);
-}
-addStars(200);
 
 // Background 
 const spaceTexture = new THREE.TextureLoader().load('assets/space.jpg');
