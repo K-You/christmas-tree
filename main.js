@@ -1,5 +1,5 @@
 import * as THREE from 'THREE';
-// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import dat from 'dat.gui';
 import './style.css';
@@ -35,7 +35,7 @@ scene.add(pointLight, ambientLight);
 // scene.add(lightHelper, gridHelper);
 
 // Controls
-// const controls = new OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
 
 
 // Tree + dat.GUI
@@ -107,6 +107,9 @@ function animate(t){
     mixers.map(m => {m.update(timeElapsed)})
   }
   previousRAF = t;
+
+  // controls.update();
+
 }
 
 // Background 
